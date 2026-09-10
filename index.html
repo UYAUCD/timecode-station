@@ -207,7 +207,7 @@
 
   <!-- 電卓 -->
   <div class="panel">
-    <input id="calcDisplay" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="00:01:30:00 + 45s × 2">
+    <input id="calcDisplay" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="ex. 00:01:30:00 + 45s × 2">
     <div class="keypad" id="keypad"></div>
     <div class="calc-history" id="calcHistory"></div>
   </div>
@@ -272,7 +272,7 @@ function secondsToTC(sec) {
   const mm = Math.floor(totalSec / 60) % 60;
   const hh = Math.floor(totalSec / 3600);
   const p = n => String(n).padStart(2, "0");
-  return { hh: p(hh), mm: p(mm), ss: p(ss), ff: p(ff), frames: f };
+  return { hh: p(hh), mm: p(mm), ss: p(ss), ff: p(ff), frames: f, sep: drop ? ";" : ":" };
 }
 
 function tcToSeconds(tc) {
@@ -291,7 +291,7 @@ function tcToSeconds(tc) {
 function renderTC(sec) {
   const tc = secondsToTC(sec);
   document.getElementById("display").innerHTML =
-    `${tc.hh}:${tc.mm}:${tc.ss}<span class="frames">:${tc.ff}</span>`;
+    `${tc.hh}:${tc.mm}:${tc.ss}<span class="frames">${tc.sep}${tc.ff}</span>`;
   document.getElementById("display").classList.toggle("running", running);
 }
 
@@ -344,8 +344,8 @@ lapBtn.addEventListener("click", () => {
   const prev = lapBtn._last || 0;
   const split = secondsToTC(sec - prev);
   lapBtn._last = sec;
-  row.innerHTML = `<span>#${n}</span><b>${tc.hh}:${tc.mm}:${tc.ss}:${tc.ff}</b>` +
-    `<span class="split">+${split.hh}:${split.mm}:${split.ss}:${split.ff}</span>`;
+  row.innerHTML = `<span>#${n}</span><b>${tc.hh}:${tc.mm}:${tc.ss}${tc.sep}${tc.ff}</b>` +
+    `<span class="split">+${split.hh}:${split.mm}:${split.ss}${split.sep}${split.ff}</span>`;
   document.getElementById("laps").prepend(row);
 });
 
@@ -476,8 +476,8 @@ function evaluate() {
   const neg = acc < 0;
   const tc = secondsToTC(Math.abs(acc));
   const sign = neg ? "−" : "";
-  history.prepend(makeHist(display.value, `${sign}${tc.hh}:${tc.mm}:${tc.ss}:${tc.ff}`));
-  display.value = `${sign}${tc.hh}:${tc.mm}:${tc.ss}:${tc.ff}`;
+  history.prepend(makeHist(display.value, `${sign}${tc.hh}:${tc.mm}:${tc.ss}${tc.sep}${tc.ff}`));
+  display.value = `${sign}${tc.hh}:${tc.mm}:${tc.ss}${tc.sep}${tc.ff}`;
 }
 
 function parseValue(tok) {
