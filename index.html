@@ -374,7 +374,7 @@ const keys = [
   ["7","8","9",":","⌫","C"],
   ["4","5","6","+","*","h"],
   ["1","2","3","-","/","m"],
-  ["0","s","f","=","",""],
+  ["0","s","f","=",".",""],
 ];
 const keypad = document.getElementById("keypad");
 keys.flat().forEach(k => {
@@ -405,15 +405,23 @@ function displayFps() {
   return drop ? nominal : fps; // 1フレームあたりの描画面のfps
 }
 
-// 複合単位 "1m2s15f" "5s20f" "1h30m" を秒に変換
+// 複合単位 "1m2s15f" "5s20f" "1h30m" "1s15"(末尾の単位省略はフレーム) を秒に変換
 function durationToSeconds(str) {
-  const re = /(\d+(?:\.\d+)?)\s*([hmsf])/gi;
+  const re = /(\d+(?:\.\d+)?)\s*([hmsf])?/gi;
   const fp = displayFps();
-  let sec = 0, hit = false, m;
+  let sec = 0, hit = false, seenUnit = false, m;
   while ((m = re.exec(str)) !== null) {
+    if (!m[0]) break;
     hit = true;
     const v = parseFloat(m[1]);
-    switch (m[2].toLowerCase()) {
+    const u = m[2] && m[2].toLowerCase();
+    if (!u) {
+      // 単位なし: 単位の後ろに続けばフレーム、先頭ならスカラー
+      sec += seenUnit ? v / fp : v;
+      continue;
+    }
+    seenUnit = true;
+    switch (u) {
       case "h": sec += v * 3600; break;
       case "m": sec += v * 60;   break;
       case "s": sec += v;        break;
@@ -426,7 +434,7 @@ function durationToSeconds(str) {
 // トークン分割: タイムコード / 複合単位 / 単一単位 / スカラー / 演算子
 function tokenize(str) {
   const tokens = [];
-  const re = /\s*(\d+:\d{1,2}:\d{1,2}[;:.]\d{1,3}|(?:\d+(?:\.\d+)?\s*[hmsf]\s*)+|\d+(?:\.\d+)?|[-+×÷*/])\s*/gi;
+  const re = /\s*(\d+:\d{1,2}:\d{1,2}[;:.]\d{1,3}|(?:\d+(?:\.\d+)?\s*[hmsf]\s*)+(?:\d+(?:\.\d+)?)?|\d+(?:\.\d+)?|[-+×÷*/])\s*/gi;
   str = str.replace(/[ー−–—]/g, "-");
   let m;
   while ((m = re.exec(str)) !== null) tokens.push(m[1].trim());
@@ -481,7 +489,7 @@ function evaluate() {
 }
 
 function parseValue(tok) {
-  if (/^(?:\d+(?:\.\d+)?\s*[hmsf]\s*)+$/i.test(tok)) return durationToSeconds(tok);
+  if (/^(?:\d+(?:\.\d+)?\s*[hmsf]\s*)+(?:\d+(?:\.\d+)?)?$/i.test(tok)) return durationToSeconds(tok);
   if (/^\d+(?:\.\d+)?$/.test(tok)) return parseFloat(tok); // スカラー (×2, ÷2 など)
   return tcToSeconds(tok);
 }
