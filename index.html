@@ -163,6 +163,11 @@
   .keypad button { min-width: 0; padding: 14px 0; font-size: 17px; }
   .keypad .op { color: var(--accent2); font-weight: 700; }
   .keypad .eq { background: var(--accent); color: #10241d; font-weight: 700; }
+  .keypad .verlabel {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; letter-spacing: 1px; color: var(--muted);
+    user-select: none; -webkit-user-select: none;
+  }
   .keypad .clear { color: var(--danger); }
   .calc-history {
     margin-top: 12px; max-height: 150px; overflow-y: auto;
@@ -388,6 +393,12 @@ keys.flat().forEach(k => {
   b.addEventListener("click", () => pressKey(k));
   keypad.appendChild(b);
 });
+
+// バージョン表記 (. キーの隣の空きマス)
+const verLabel = document.createElement("div");
+verLabel.className = "verlabel";
+verLabel.textContent = "2.03";
+keypad.appendChild(verLabel);
 
 function pressKey(k) {
   if (k === "C") { display.value = ""; display.focus(); return; }
