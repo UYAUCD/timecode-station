@@ -120,6 +120,8 @@
   button.primary { background: var(--accent); color: #10241d; font-weight: 700; border-color: transparent; }
   button.danger  { background: var(--danger); color: #2b1111; font-weight: 700; border-color: transparent; }
   button.secondary { min-width: 60px; padding: 12px 14px; }
+  button.lap-active { background: #ffd54f; color: #2b2200; font-weight: 700; border-color: transparent; }
+  .wake-state { margin-top: 7px; text-align: center; font-size: 12px; }
 
   .opts {
     display: flex; gap: 14px; align-items: center; justify-content: center;
@@ -201,8 +203,8 @@
     <div class="row" style="margin-top:10px;">
       <button id="lapBtn" disabled>ラップ</button>
       <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
-      <span id="wakeStatus" role="status">確認中</span>
     </div>
+    <div class="wake-state"><span id="wakeStatus" role="status">確認中</span></div>
     <div class="opts">
       <label>フレームレート:
         <select id="fpsSelect">
@@ -220,7 +222,7 @@
 
   <!-- 電卓 -->
   <div class="panel">
-    <input id="calcDisplay" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="1s20 + 3s10">
+    <input id="calcDisplay" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="ex. 1s20+3s10">
     <div class="keypad" id="keypad"></div>
     <div class="calc-history" id="calcHistory"></div>
   </div>
@@ -334,7 +336,9 @@ startBtn.addEventListener("click", () => {
     running = false;
     cancelAnimationFrame(rafId);
     startBtn.textContent = "スタート";
+    startBtn.classList.remove("danger");
     startBtn.classList.add("primary");
+    lapBtn.classList.remove("lap-active");
     lapBtn.disabled = true;
     resetBtn.disabled = false;
   } else {
@@ -343,6 +347,8 @@ startBtn.addEventListener("click", () => {
     tick();
     startBtn.textContent = "ストップ";
     startBtn.classList.remove("primary");
+    startBtn.classList.add("danger");
+    lapBtn.classList.add("lap-active");
     lapBtn.disabled = false;
     resetBtn.disabled = true;
   }
@@ -369,7 +375,9 @@ resetBtn.addEventListener("click", () => {
   elapsed = 0;
   lapBtn._last = 0;
   startBtn.textContent = "スタート";
+  startBtn.classList.remove("danger");
   startBtn.classList.add("primary");
+  lapBtn.classList.remove("lap-active");
   lapBtn.disabled = true;
   resetBtn.disabled = true;
   document.getElementById("laps").innerHTML = "";
