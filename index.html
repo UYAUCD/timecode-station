@@ -141,6 +141,7 @@
   }
   .lap b { color: var(--text); font-weight: 600; }
   .lap .split { color: var(--accent2); }
+  .lap.stop > span:first-child { color: var(--danger); font-weight: 700; }
 
   /* 電卓 */
   .calc-note { color: var(--muted); font-size: 12px; margin: 0 0 12px; line-height: 1.7; }
@@ -335,6 +336,7 @@ startBtn.addEventListener("click", () => {
     elapsed = currentElapsed();
     running = false;
     cancelAnimationFrame(rafId);
+    if (document.querySelector(".lap:not(.stop)")) addLapRecord(elapsed, true);
     startBtn.textContent = "スタート";
     startBtn.classList.remove("danger");
     startBtn.classList.add("primary");
@@ -355,18 +357,22 @@ startBtn.addEventListener("click", () => {
   renderTC(currentElapsed());
 });
 
-lapBtn.addEventListener("click", () => {
-  const sec = currentElapsed();
+function addLapRecord(sec, isStop = false) {
   const tc = secondsToTC(sec);
   const row = document.createElement("div");
-  row.className = "lap";
-  const n = document.querySelectorAll(".lap").length + 1;
+  row.className = isStop ? "lap stop" : "lap";
+  const n = document.querySelectorAll(".lap:not(.stop)").length + 1;
   const prev = lapBtn._last || 0;
   const split = secondsToTC(sec - prev);
   lapBtn._last = sec;
-  row.innerHTML = `<span>#${n}</span><b>${tc.hh}:${tc.mm}:${tc.ss}${tc.sep}${tc.ff}</b>` +
+  const label = isStop ? "STOP" : `#${n}`;
+  row.innerHTML = `<span>${label}</span><b>${tc.hh}:${tc.mm}:${tc.ss}${tc.sep}${tc.ff}</b>` +
     `<span class="split">+${split.hh}:${split.mm}:${split.ss}${split.sep}${split.ff}</span>`;
   document.getElementById("laps").prepend(row);
+}
+
+lapBtn.addEventListener("click", () => {
+  addLapRecord(currentElapsed());
 });
 
 resetBtn.addEventListener("click", () => {
