@@ -196,8 +196,12 @@
     <div class="tc-display" id="display">00:00:00<span class="frames">:00</span></div>
     <div class="row" style="margin-top:14px;">
       <button class="primary" id="startBtn">スタート</button>
-      <button id="lapBtn" disabled>ラップ</button>
       <button class="danger" id="resetBtn" disabled>リセット</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button id="lapBtn" disabled>ラップ</button>
+      <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
+      <span id="wakeStatus" role="status">確認中</span>
     </div>
     <div class="opts">
       <label>フレームレート:
@@ -210,15 +214,13 @@
         </select>
       </label>
       <label><input type="checkbox" id="dropCheck"> DF (ドロップフレーム)</label>
-      <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
-      <span id="wakeStatus" role="status">確認中</span>
     </div>
     <div class="laps" id="laps"></div>
   </div>
 
   <!-- 電卓 -->
   <div class="panel">
-    <input id="calcDisplay" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="ex. 00:01:30:00 + 45s × 2">
+    <input id="calcDisplay" type="text" spellcheck="false" autocomplete="off" inputmode="none" placeholder="1s20 + 3s10">
     <div class="keypad" id="keypad"></div>
     <div class="calc-history" id="calcHistory"></div>
   </div>
@@ -334,6 +336,7 @@ startBtn.addEventListener("click", () => {
     startBtn.textContent = "スタート";
     startBtn.classList.add("primary");
     lapBtn.disabled = true;
+    resetBtn.disabled = false;
   } else {
     startTime = performance.now();
     running = true;
@@ -341,8 +344,8 @@ startBtn.addEventListener("click", () => {
     startBtn.textContent = "ストップ";
     startBtn.classList.remove("primary");
     lapBtn.disabled = false;
+    resetBtn.disabled = true;
   }
-  resetBtn.disabled = false;
   renderTC(currentElapsed());
 });
 
