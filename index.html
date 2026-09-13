@@ -102,6 +102,8 @@
   .tc-display.running { text-shadow: 0 0 24px rgba(79, 209, 165, .35); }
 
   .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .control-row { width: 100%; flex-wrap: nowrap; }
+  .control-row button { flex: 1 1 0; width: 0; min-width: 0; }
   button {
     font-family: inherit;
     font-size: 16px;
@@ -197,11 +199,11 @@
   <!-- ストップウォッチ -->
   <div class="panel">
     <div class="tc-display" id="display">00:00:00<span class="frames">:00</span></div>
-    <div class="row" style="margin-top:14px;">
+    <div class="row control-row" style="margin-top:14px;">
       <button class="primary" id="startBtn">スタート</button>
       <button class="danger" id="resetBtn" disabled>リセット</button>
     </div>
-    <div class="row" style="margin-top:10px;">
+    <div class="row control-row" style="margin-top:10px;">
       <button id="lapBtn" disabled>ラップ</button>
       <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
     </div>
