@@ -210,6 +210,8 @@
         </select>
       </label>
       <label><input type="checkbox" id="dropCheck"> DF (ドロップフレーム)</label>
+      <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
+      <span id="wakeStatus" role="status">確認中</span>
     </div>
     <div class="laps" id="laps"></div>
   </div>
@@ -533,27 +535,73 @@ display.addEventListener("keydown", e => {
 /* ===================== 画面スリープ防止 ===================== */
 
 let wakeLock = null;
+let keepScreenAwake = true;
+const wakeBtn = document.getElementById("wakeBtn");
+const wakeStatus = document.getElementById("wakeStatus");
+
+function updateWakeStatus(message, active = false) {
+  wakeStatus.textContent = message;
+  wakeStatus.style.color = active ? "var(--accent)" : "var(--muted)";
+  wakeBtn.textContent = active ? "常時オンを解除" : "画面を常時オン";
+}
 
 async function requestScreenWakeLock() {
-  if (!("wakeLock" in navigator) || document.visibilityState !== "visible" || wakeLock) return;
+  if (!keepScreenAwake || document.visibilityState !== "visible") return false;
+  if (!window.isSecureContext) {
+    updateWakeStatus("HTTPS接続が必要です");
+    return false;
+  }
+  if (!("wakeLock" in navigator)) {
+    updateWakeStatus("この環境では非対応");
+    return false;
+  }
+  if (wakeLock && !wakeLock.released) {
+    updateWakeStatus("画面常時オン", true);
+    return true;
+  }
+
   try {
     wakeLock = await navigator.wakeLock.request("screen");
+    updateWakeStatus("画面常時オン", true);
     wakeLock.addEventListener("release", () => {
       wakeLock = null;
-    });
+      updateWakeStatus(keepScreenAwake ? "再取得待ち" : "解除済み");
+    }, { once: true });
+    return true;
   } catch (err) {
+    wakeLock = null;
+    updateWakeStatus("タップして有効化");
+    wakeStatus.title = `${err.name}: ${err.message}`;
     console.warn("画面スリープ防止を有効にできませんでした:", err);
+    return false;
   }
 }
 
-// バックグラウンドでは自動解除されるため、前面復帰時に再取得する
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") requestScreenWakeLock();
+wakeBtn.addEventListener("click", async () => {
+  if (wakeLock && !wakeLock.released) {
+    keepScreenAwake = false;
+    await wakeLock.release();
+    wakeLock = null;
+    updateWakeStatus("解除済み");
+  } else {
+    keepScreenAwake = true;
+    await requestScreenWakeLock();
+  }
 });
 
-// iOSで初回要求にユーザー操作が必要な場合にも有効化できるよう再試行する
-document.addEventListener("pointerdown", requestScreenWakeLock, { passive: true });
-document.addEventListener("keydown", requestScreenWakeLock);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && keepScreenAwake) {
+    requestScreenWakeLock();
+  }
+});
+
+// 起動時に拒否された場合、最初のユーザー操作で再取得する
+document.addEventListener("pointerdown", () => {
+  if (keepScreenAwake && (!wakeLock || wakeLock.released)) requestScreenWakeLock();
+}, { passive: true });
+document.addEventListener("keydown", () => {
+  if (keepScreenAwake && (!wakeLock || wakeLock.released)) requestScreenWakeLock();
+});
 
 requestScreenWakeLock();
 renderTC(0);
