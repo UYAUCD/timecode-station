@@ -634,6 +634,16 @@ document.addEventListener("keydown", () => {
 
 requestScreenWakeLock();
 renderTC(0);
+
+/* ===================== PWA / オフライン起動 ===================== */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(err => {
+      console.warn("Service Workerを登録できませんでした:", err);
+    });
+  });
+}
 </script>
 </body>
 </html>
