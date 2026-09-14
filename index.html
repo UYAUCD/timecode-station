@@ -102,16 +102,67 @@
   .tc-display.running { text-shadow: 0 0 24px rgba(79, 209, 165, .35); }
 
   .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-  .control-row { width: 100%; flex-wrap: nowrap; align-items: flex-start; }
-  .control-row > button,
-  .control-row > .wake-control {
-    flex: 0 0 calc((100% - 10px) / 2);
-    width: calc((100% - 10px) / 2);
-    min-width: 0;
+  .control-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+    align-items: stretch;
   }
-  .control-row > button { padding: 12px 10px; }
-  .wake-control { display: flex; flex-direction: column; align-items: stretch; }
+  .control-grid > button,
+  .control-grid > .control-cell {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+  }
+  .control-grid > button { padding: 12px 10px; }
+  .control-cell { display: flex; align-items: stretch; }
+  .wake-control { flex-direction: column; }
   .wake-control button { width: 100%; min-width: 0; padding: 12px 10px; }
+  .fps-control {
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 7px 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel2);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .fps-control select { min-width: 0; max-width: 100%; }
+  .drop-toggle {
+    position: relative;
+    align-items: stretch;
+  }
+  .drop-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .drop-toggle span {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel2);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .drop-toggle input:checked + span {
+    background: var(--accent2);
+    color: #0d1d35;
+    border-color: transparent;
+    font-weight: 700;
+  }
+  .drop-toggle input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   button {
     font-family: inherit;
     font-size: 16px;
@@ -207,28 +258,30 @@
   <!-- ストップウォッチ -->
   <div class="panel">
     <div class="tc-display" id="display">00:00:00<span class="frames">:00</span></div>
-    <div class="row control-row" style="margin-top:14px;">
+    <div class="control-grid">
       <button class="primary" id="startBtn">スタート</button>
-      <button class="danger" id="resetBtn" disabled>リセット</button>
-    </div>
-    <div class="row control-row" style="margin-top:10px;">
-      <button id="lapBtn" disabled>ラップ</button>
-      <div class="wake-control">
+      <div class="control-cell wake-control">
         <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
         <div class="wake-state"><span id="wakeStatus" role="status">確認中</span></div>
       </div>
-    </div>
-    <div class="opts">
-      <label>フレームレート:
-        <select id="fpsSelect">
+
+      <button id="lapBtn" disabled>ラップ</button>
+      <label class="control-cell fps-control" for="fpsSelect">
+        <span>フレームレート</span>
+        <select id="fpsSelect" aria-label="フレームレート">
           <option value="24">24 fps</option>
           <option value="25">25 fps</option>
           <option value="30" selected>30 fps</option>
-          <option value="29.97">29.97 fps (drop frame)</option>
+          <option value="29.97">29.97 fps</option>
           <option value="60">60 fps</option>
         </select>
       </label>
-      <label><input type="checkbox" id="dropCheck"> DF (ドロップフレーム)</label>
+
+      <button class="danger" id="resetBtn" disabled>リセット</button>
+      <label class="control-cell drop-toggle" for="dropCheck">
+        <input type="checkbox" id="dropCheck">
+        <span id="dropLabel">ノンドロップ</span>
+      </label>
     </div>
     <div class="laps" id="laps"></div>
   </div>
@@ -403,7 +456,10 @@ resetBtn.addEventListener("click", () => {
 });
 
 document.getElementById("fpsSelect").addEventListener("change", () => renderTC(currentElapsed()));
-document.getElementById("dropCheck").addEventListener("change", () => renderTC(currentElapsed()));
+document.getElementById("dropCheck").addEventListener("change", event => {
+  document.getElementById("dropLabel").textContent = event.target.checked ? "ドロップ" : "ノンドロップ";
+  renderTC(currentElapsed());
+});
 
 /* ===================== 電卓 ===================== */
 
@@ -432,7 +488,7 @@ keys.flat().forEach(k => {
 // バージョン表記 (. キーの隣の空きマス)
 const verLabel = document.createElement("div");
 verLabel.className = "verlabel";
-verLabel.textContent = "2.1";
+verLabel.textContent = "2.1.1";
 keypad.appendChild(verLabel);
 
 function pressKey(k) {
