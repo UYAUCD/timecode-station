@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -259,16 +259,16 @@
   <div class="panel">
     <div class="tc-display" id="display">00:00:00<span class="frames">:00</span></div>
     <div class="control-grid">
-      <button class="primary" id="startBtn">スタート</button>
+      <button class="primary" id="startBtn">START</button>
       <div class="control-cell wake-control">
-        <button class="secondary" id="wakeBtn" type="button">画面を常時オン</button>
-        <div class="wake-state"><span id="wakeStatus" role="status">確認中</span></div>
+        <button class="secondary" id="wakeBtn" type="button">KEEP SCREEN ON</button>
+        <div class="wake-state"><span id="wakeStatus" role="status">CHECKING</span></div>
       </div>
 
-      <button id="lapBtn" disabled>ラップ</button>
+      <button id="lapBtn" disabled>LAP</button>
       <label class="control-cell fps-control" for="fpsSelect">
-        <span>フレーム<br>レート</span>
-        <select id="fpsSelect" aria-label="フレームレート">
+        <span>FRAME RATE</span>
+        <select id="fpsSelect" aria-label="Frame rate">
           <option value="24">24 fps</option>
           <option value="25">25 fps</option>
           <option value="30" selected>30 fps</option>
@@ -277,10 +277,10 @@
         </select>
       </label>
 
-      <button class="danger" id="resetBtn" disabled>リセット</button>
+      <button class="danger" id="resetBtn" disabled>RESET</button>
       <label class="control-cell drop-toggle" for="dropCheck">
         <input type="checkbox" id="dropCheck">
-        <span id="dropLabel">ノンドロップ</span>
+        <span id="dropLabel">NDF</span>
       </label>
     </div>
     <div class="laps" id="laps"></div>
@@ -293,7 +293,7 @@
     <div class="calc-history" id="calcHistory"></div>
   </div>
 
-  <footer>フレームは内部で高精度 (performance.now) に計算しています</footer>
+  <footer>Frames are calculated with high precision using performance.now()</footer>
 </div>
 
 <script>
@@ -402,7 +402,7 @@ startBtn.addEventListener("click", () => {
     running = false;
     cancelAnimationFrame(rafId);
     if (document.querySelector(".lap:not(.stop)")) addLapRecord(elapsed, true);
-    startBtn.textContent = "スタート";
+    startBtn.textContent = "START";
     startBtn.classList.remove("danger");
     startBtn.classList.add("primary");
     lapBtn.classList.remove("lap-active");
@@ -412,7 +412,7 @@ startBtn.addEventListener("click", () => {
     startTime = performance.now();
     running = true;
     tick();
-    startBtn.textContent = "ストップ";
+    startBtn.textContent = "STOP";
     startBtn.classList.remove("primary");
     startBtn.classList.add("danger");
     lapBtn.classList.add("lap-active");
@@ -445,7 +445,7 @@ resetBtn.addEventListener("click", () => {
   cancelAnimationFrame(rafId);
   elapsed = 0;
   lapBtn._last = 0;
-  startBtn.textContent = "スタート";
+  startBtn.textContent = "START";
   startBtn.classList.remove("danger");
   startBtn.classList.add("primary");
   lapBtn.classList.remove("lap-active");
@@ -457,7 +457,7 @@ resetBtn.addEventListener("click", () => {
 
 document.getElementById("fpsSelect").addEventListener("change", () => renderTC(currentElapsed()));
 document.getElementById("dropCheck").addEventListener("change", event => {
-  document.getElementById("dropLabel").textContent = event.target.checked ? "ドロップ" : "ノンドロップ";
+  document.getElementById("dropLabel").textContent = event.target.checked ? "DF" : "NDF";
   renderTC(currentElapsed());
 });
 
@@ -572,7 +572,7 @@ function evaluate() {
       case "-": case "−": acc -= v; break;
       case "×": case "*": acc *= v; break;
       case "÷": case "/":
-        if (v === 0) { err = "0で割れません"; } else acc /= v;
+        if (v === 0) { err = "CANNOT DIVIDE BY ZERO"; } else acc /= v;
         break;
       default: err = true;
     }
@@ -580,7 +580,7 @@ function evaluate() {
   }
 
   if (err !== null) {
-    history.prepend(makeHist(display.value, err === true ? "式エラー" : err, true));
+    history.prepend(makeHist(display.value, err === true ? "FORMULA ERROR" : err, true));
     return;
   }
   const neg = acc < 0;
@@ -610,7 +610,7 @@ function escapeHtml(s) {
 }
 
 function showError() {
-  history.prepend(makeHist(display.value, "入力エラー", true));
+  history.prepend(makeHist(display.value, "INPUT ERROR", true));
 }
 
 display.addEventListener("keydown", e => {
@@ -627,35 +627,35 @@ const wakeStatus = document.getElementById("wakeStatus");
 function updateWakeStatus(message, active = false) {
   wakeStatus.textContent = message;
   wakeStatus.style.color = active ? "var(--accent)" : "var(--muted)";
-  wakeBtn.textContent = active ? "常時オンを解除" : "画面を常時オン";
+  wakeBtn.textContent = active ? "SCREEN ON: ACTIVE" : "KEEP SCREEN ON";
 }
 
 async function requestScreenWakeLock() {
   if (!keepScreenAwake || document.visibilityState !== "visible") return false;
   if (!window.isSecureContext) {
-    updateWakeStatus("HTTPS接続が必要です");
+    updateWakeStatus("HTTPS REQUIRED");
     return false;
   }
   if (!("wakeLock" in navigator)) {
-    updateWakeStatus("この環境では非対応");
+    updateWakeStatus("NOT SUPPORTED");
     return false;
   }
   if (wakeLock && !wakeLock.released) {
-    updateWakeStatus("画面常時オン", true);
+    updateWakeStatus("SCREEN ON", true);
     return true;
   }
 
   try {
     wakeLock = await navigator.wakeLock.request("screen");
-    updateWakeStatus("画面常時オン", true);
+    updateWakeStatus("SCREEN ON", true);
     wakeLock.addEventListener("release", () => {
       wakeLock = null;
-      updateWakeStatus(keepScreenAwake ? "再取得待ち" : "解除済み");
+      updateWakeStatus(keepScreenAwake ? "REACTIVATING" : "OFF");
     }, { once: true });
     return true;
   } catch (err) {
     wakeLock = null;
-    updateWakeStatus("タップして有効化");
+    updateWakeStatus("TAP TO ENABLE");
     wakeStatus.title = `${err.name}: ${err.message}`;
     console.warn("画面スリープ防止を有効にできませんでした:", err);
     return false;
@@ -667,7 +667,7 @@ wakeBtn.addEventListener("click", async () => {
     keepScreenAwake = false;
     await wakeLock.release();
     wakeLock = null;
-    updateWakeStatus("解除済み");
+    updateWakeStatus("OFF");
   } else {
     keepScreenAwake = true;
     await requestScreenWakeLock();
