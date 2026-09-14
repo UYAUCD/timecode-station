@@ -1,14 +1,14 @@
 {
   "name": "TIMECODE STATION 2",
   "short_name": "TC STATION",
-  "description": "計算機機能付きタイムコードストップウォッチ",
+  "description": "Timecode stopwatch with a built-in calculator",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#14161c",
   "theme_color": "#14161c",
-  "lang": "ja",
+  "lang": "en",
   "icons": [
     {
       "src": "icon-192.png",
