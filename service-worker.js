@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "timecode-station-v2.1.1-label";
+const CACHE_NAME = "timecode-station-v2.1.1-en";
 const APP_SHELL = [
   "./",
   "./index.html",
